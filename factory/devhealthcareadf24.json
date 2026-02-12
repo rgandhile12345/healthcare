@@ -1,0 +1,9 @@
+{
+	"name": "devhealthcareadf24",
+	"location": "westus3",
+	"identity": {
+		"type": "SystemAssigned",
+		"principalId": "453f1bf1-b378-4ff5-b484-b472fd583a61",
+		"tenantId": "f5a5d3e0-4a90-4440-83d3-dda4e685ff53"
+	}
+}

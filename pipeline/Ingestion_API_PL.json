@@ -1,0 +1,129 @@
+{
+	"name": "Ingestion_API_PL",
+	"properties": {
+		"activities": [
+			{
+				"name": "Lookup_api_config_table",
+				"type": "Lookup",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "AzureSqlSource",
+						"sqlReaderQuery": {
+							"value": "select * from [healthcare].[api_config_table] where Is_Active = 1",
+							"type": "Expression"
+						},
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "ds_healthcare_sql_config",
+						"type": "DatasetReference"
+					},
+					"firstRowOnly": false
+				}
+			},
+			{
+				"name": "Iterate API Resource",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "Lookup_api_config_table",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('Lookup_api_config_table').output.value",
+						"type": "Expression"
+					},
+					"isSequential": true,
+					"activities": [
+						{
+							"name": "Copy API Data",
+							"type": "Copy",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "JsonSource",
+									"storeSettings": {
+										"type": "HttpReadSettings",
+										"requestMethod": "GET",
+										"requestTimeout": ""
+									},
+									"formatSettings": {
+										"type": "JsonReadSettings"
+									}
+								},
+								"sink": {
+									"type": "JsonSink",
+									"storeSettings": {
+										"type": "AzureBlobFSWriteSettings"
+									},
+									"formatSettings": {
+										"type": "JsonWriteSettings"
+									}
+								},
+								"enableStaging": false
+							},
+							"inputs": [
+								{
+									"referenceName": "ds_source_api_json",
+									"type": "DatasetReference",
+									"parameters": {
+										"resource": {
+											"value": "@item().Resource_Name",
+											"type": "Expression"
+										}
+									}
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "ds_staging_healthcare_json",
+									"type": "DatasetReference",
+									"parameters": {
+										"containerName": {
+											"value": "@item().Stage_Container_Name",
+											"type": "Expression"
+										},
+										"stagingFolderPath": {
+											"value": "@item().Stage_Folder_Path",
+											"type": "Expression"
+										},
+										"stagingFileName": {
+											"value": "@concat(item().Stage_File_Name,'_',formatDateTime(utcNow(),'yyyyMMdd_HH-mm-ss'),'.json')",
+											"type": "Expression"
+										}
+									}
+								}
+							]
+						}
+					]
+				}
+			}
+		],
+		"annotations": [],
+		"lastPublishTime": "2026-02-09T09:54:33Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

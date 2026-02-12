@@ -1,0 +1,41 @@
+{
+	"name": "ds_staging_healthcare_json",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "LS_healthcare_devstorage",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"containerName": {
+				"type": "string"
+			},
+			"stagingFolderPath": {
+				"type": "string"
+			},
+			"stagingFileName": {
+				"type": "string"
+			}
+		},
+		"annotations": [],
+		"type": "Json",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"fileName": {
+					"value": "@dataset().stagingFileName",
+					"type": "Expression"
+				},
+				"folderPath": {
+					"value": "@concat(dataset().stagingFolderPath,'/',formatDateTime(utcNow(),'yyyy'))",
+					"type": "Expression"
+				},
+				"fileSystem": {
+					"value": "@dataset().containerName",
+					"type": "Expression"
+				}
+			}
+		},
+		"schema": {}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

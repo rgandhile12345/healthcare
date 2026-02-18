@@ -67,8 +67,7 @@
 									"type": "JsonSource",
 									"storeSettings": {
 										"type": "HttpReadSettings",
-										"requestMethod": "GET",
-										"requestTimeout": ""
+										"requestMethod": "GET"
 									},
 									"formatSettings": {
 										"type": "JsonReadSettings"
@@ -91,7 +90,7 @@
 									"type": "DatasetReference",
 									"parameters": {
 										"resource": {
-											"value": "@item().Resource_Name",
+											"value": "@if(\n    equals(item().Is_Historical, 1),\n    item().Resource_Name,\n    concat(\n        item().Resource_Name,\n        '?_lastUpdate=gt',\n        item().CURRENTCHECKPOINT\n    ))",
 											"type": "Expression"
 										}
 									}

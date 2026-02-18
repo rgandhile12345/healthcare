@@ -16,7 +16,7 @@
 			"location": {
 				"type": "HttpServerLocation",
 				"relativeUrl": {
-					"value": "@{dataset().resource}?_count=5",
+					"value": "@{dataset().resource}",
 					"type": "Expression"
 				}
 			}

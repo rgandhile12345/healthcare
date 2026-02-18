@@ -1,0 +1,739 @@
+{
+	"$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"factoryName": {
+			"type": "string",
+			"metadata": "Data Factory name",
+			"defaultValue": "devhealthcareadf24"
+		},
+		"LS_healthcare_devstorage_accountKey": {
+			"type": "secureString",
+			"metadata": "Secure string for 'accountKey' of 'LS_healthcare_devstorage'"
+		},
+		"LS_healthcare_sqlDB_config_password": {
+			"type": "secureString",
+			"metadata": "Secure string for 'password' of 'LS_healthcare_sqlDB_config'"
+		},
+		"LS_load_json_to_bronze notebook_accessToken": {
+			"type": "secureString",
+			"metadata": "Secure string for 'accessToken' of 'LS_load_json_to_bronze notebook'"
+		},
+		"Loading Data Silver To Gold Table_accessToken": {
+			"type": "secureString",
+			"metadata": "Secure string for 'accessToken' of 'Loading Data Silver To Gold Table'"
+		},
+		"LS_healthcare_api_source_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://r4.smarthealthit.org/"
+		},
+		"LS_healthcare_devstorage_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://devhealthcarestorage24.dfs.core.windows.net/"
+		},
+		"LS_healthcare_sqlDB_config_properties_typeProperties_server": {
+			"type": "string",
+			"defaultValue": "devhalthcaredb2403.database.windows.net"
+		},
+		"LS_healthcare_sqlDB_config_properties_typeProperties_database": {
+			"type": "string",
+			"defaultValue": "devhealthcaredb"
+		},
+		"LS_healthcare_sqlDB_config_properties_typeProperties_userName": {
+			"type": "string",
+			"defaultValue": "Avduser"
+		},
+		"LS_load_json_to_bronze notebook_properties_typeProperties_existingClusterId": {
+			"type": "string",
+			"defaultValue": "0215-072529-zjj9pyio"
+		},
+		"Loading Data Silver To Gold Table_properties_typeProperties_existingClusterId": {
+			"type": "string",
+			"defaultValue": "0215-072529-zjj9pyio"
+		}
+	},
+	"variables": {
+		"factoryId": "[concat('Microsoft.DataFactory/factories/', parameters('factoryName'))]"
+	},
+	"resources": [
+		{
+			"name": "[concat(parameters('factoryName'), '/LS_healthcare_api_source')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "HttpServer",
+				"typeProperties": {
+					"url": "[parameters('LS_healthcare_api_source_properties_typeProperties_url')]",
+					"enableServerCertificateValidation": true,
+					"authenticationType": "Anonymous"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/LS_healthcare_devstorage')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "AzureBlobFS",
+				"typeProperties": {
+					"url": "[parameters('LS_healthcare_devstorage_properties_typeProperties_url')]",
+					"accountKey": {
+						"type": "SecureString",
+						"value": "[parameters('LS_healthcare_devstorage_accountKey')]"
+					}
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/LS_healthcare_sqlDB_config')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "AzureSqlDatabase",
+				"typeProperties": {
+					"server": "[parameters('LS_healthcare_sqlDB_config_properties_typeProperties_server')]",
+					"database": "[parameters('LS_healthcare_sqlDB_config_properties_typeProperties_database')]",
+					"encrypt": "optional",
+					"trustServerCertificate": false,
+					"authenticationType": "SQL",
+					"userName": "[parameters('LS_healthcare_sqlDB_config_properties_typeProperties_userName')]",
+					"password": {
+						"type": "SecureString",
+						"value": "[parameters('LS_healthcare_sqlDB_config_password')]"
+					}
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/LS_load_json_to_bronze notebook')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "AzureDatabricks",
+				"typeProperties": {
+					"domain": "https://adb-7405612431406758.18.azuredatabricks.net",
+					"accessToken": {
+						"type": "SecureString",
+						"value": "[parameters('LS_load_json_to_bronze notebook_accessToken')]"
+					},
+					"existingClusterId": "[parameters('LS_load_json_to_bronze notebook_properties_typeProperties_existingClusterId')]"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Loading Data Silver To Gold Table')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "AzureDatabricks",
+				"typeProperties": {
+					"domain": "https://adb-7405612431406758.18.azuredatabricks.net",
+					"accessToken": {
+						"type": "SecureString",
+						"value": "[parameters('Loading Data Silver To Gold Table_accessToken')]"
+					},
+					"existingClusterId": "[parameters('Loading Data Silver To Gold Table_properties_typeProperties_existingClusterId')]"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ds_healthcare_sql_config')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "LS_healthcare_sqlDB_config",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [],
+				"typeProperties": {}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/LS_healthcare_sqlDB_config')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ds_source_api_json')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "LS_healthcare_api_source",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"resource": {
+						"type": "string"
+					}
+				},
+				"annotations": [],
+				"type": "Json",
+				"typeProperties": {
+					"location": {
+						"type": "HttpServerLocation",
+						"relativeUrl": {
+							"value": "@{dataset().resource}",
+							"type": "Expression"
+						}
+					}
+				},
+				"schema": {}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/LS_healthcare_api_source')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ds_staging_healthcare_json')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "LS_healthcare_devstorage",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"containerName": {
+						"type": "string"
+					},
+					"stagingFolderPath": {
+						"type": "string"
+					},
+					"stagingFileName": {
+						"type": "string"
+					}
+				},
+				"annotations": [],
+				"type": "Json",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileName": {
+							"value": "@dataset().stagingFileName",
+							"type": "Expression"
+						},
+						"folderPath": {
+							"value": "@concat(dataset().stagingFolderPath,'/',formatDateTime(utcNow(),'yyyy'))",
+							"type": "Expression"
+						},
+						"fileSystem": {
+							"value": "@dataset().containerName",
+							"type": "Expression"
+						}
+					}
+				},
+				"schema": {}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/LS_healthcare_devstorage')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Ingestion_API_PL')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Lookup_api_config_table",
+						"type": "Lookup",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "AzureSqlSource",
+								"sqlReaderQuery": {
+									"value": "select * from [healthcare].[api_config_table] where Is_Active = 1",
+									"type": "Expression"
+								},
+								"queryTimeout": "02:00:00",
+								"partitionOption": "None"
+							},
+							"dataset": {
+								"referenceName": "ds_healthcare_sql_config",
+								"type": "DatasetReference",
+								"parameters": {}
+							},
+							"firstRowOnly": false
+						}
+					},
+					{
+						"name": "Iterate API Resource",
+						"type": "ForEach",
+						"dependsOn": [
+							{
+								"activity": "Lookup_api_config_table",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"items": {
+								"value": "@activity('Lookup_api_config_table').output.value",
+								"type": "Expression"
+							},
+							"isSequential": true,
+							"activities": [
+								{
+									"name": "Copy API Data",
+									"type": "Copy",
+									"dependsOn": [],
+									"policy": {
+										"timeout": "0.12:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"source": {
+											"type": "JsonSource",
+											"storeSettings": {
+												"type": "HttpReadSettings",
+												"requestMethod": "GET"
+											},
+											"formatSettings": {
+												"type": "JsonReadSettings"
+											}
+										},
+										"sink": {
+											"type": "JsonSink",
+											"storeSettings": {
+												"type": "AzureBlobFSWriteSettings"
+											},
+											"formatSettings": {
+												"type": "JsonWriteSettings"
+											}
+										},
+										"enableStaging": false
+									},
+									"inputs": [
+										{
+											"referenceName": "ds_source_api_json",
+											"type": "DatasetReference",
+											"parameters": {
+												"resource": {
+													"value": "@if(\n    equals(item().Is_Historical, 1),\n    item().Resource_Name,\n    concat(\n        item().Resource_Name,\n        '?_lastUpdate=gt',\n        item().CURRENTCHECKPOINT\n    ))",
+													"type": "Expression"
+												}
+											}
+										}
+									],
+									"outputs": [
+										{
+											"referenceName": "ds_staging_healthcare_json",
+											"type": "DatasetReference",
+											"parameters": {
+												"containerName": {
+													"value": "@item().Stage_Container_Name",
+													"type": "Expression"
+												},
+												"stagingFolderPath": {
+													"value": "@item().Stage_Folder_Path",
+													"type": "Expression"
+												},
+												"stagingFileName": {
+													"value": "@concat(item().Stage_File_Name,'_',formatDateTime(utcNow(),'yyyyMMdd_HH-mm-ss'),'.json')",
+													"type": "Expression"
+												}
+											}
+										}
+									]
+								}
+							]
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"annotations": [],
+				"lastPublishTime": "2026-02-09T09:54:33Z"
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/ds_healthcare_sql_config')]",
+				"[concat(variables('factoryId'), '/datasets/ds_source_api_json')]",
+				"[concat(variables('factoryId'), '/datasets/ds_staging_healthcare_json')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/API_Master_PL')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Lookup Pipeline Run Logs",
+						"type": "Lookup",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "AzureSqlSource",
+								"sqlReaderQuery": {
+									"value": "select is_last_run_completed from [healthcare].[pipeline_run_status] where pipeline_name = 'API_Master_PL'",
+									"type": "Expression"
+								},
+								"queryTimeout": "02:00:00",
+								"partitionOption": "None"
+							},
+							"dataset": {
+								"referenceName": "ds_healthcare_sql_config",
+								"type": "DatasetReference",
+								"parameters": {}
+							},
+							"firstRowOnly": true
+						}
+					},
+					{
+						"name": "Check is_last_run_completed is 1 or Not",
+						"type": "IfCondition",
+						"dependsOn": [
+							{
+								"activity": "Lookup Pipeline Run Logs",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"expression": {
+								"value": "@equals(activity('Lookup Pipeline Run Logs').output.firstRow['is_last_run_completed'],1)",
+								"type": "Expression"
+							},
+							"ifTrueActivities": [
+								{
+									"name": "Set MasterPipelineRunID",
+									"type": "SetVariable",
+									"dependsOn": [
+										{
+											"activity": "Set Pipeline Start Time",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"policy": {
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"variableName": "pipelineStartTime",
+										"value": {
+											"value": "@utcNow()",
+											"type": "Expression"
+										}
+									}
+								},
+								{
+									"name": "Update is_last_run_completed to 0",
+									"type": "Script",
+									"dependsOn": [
+										{
+											"activity": "Set Pipeline Start Time",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"policy": {
+										"timeout": "0.12:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"linkedServiceName": {
+										"referenceName": "LS_healthcare_sqlDB_config",
+										"type": "LinkedServiceReference"
+									},
+									"typeProperties": {
+										"scripts": [
+											{
+												"type": "Query",
+												"text": {
+													"value": "UPDATE [healthcare].[pipeline_run_status] SET is_last_run_completed = 0 ,added_by = '@{variables('masterPipelineRunID')}' WHERE pipeline_name = 'API_Master_PL'",
+													"type": "Expression"
+												}
+											}
+										],
+										"scriptBlockExecutionTimeout": "02:00:00"
+									}
+								},
+								{
+									"name": "Execute Ingestion PL",
+									"type": "ExecutePipeline",
+									"dependsOn": [
+										{
+											"activity": "Update is_last_run_completed to 0",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										},
+										{
+											"activity": "Set MasterPipelineRunID",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"policy": {
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"pipeline": {
+											"referenceName": "Ingestion_API_PL",
+											"type": "PipelineReference"
+										},
+										"waitOnCompletion": true,
+										"parameters": {}
+									}
+								},
+								{
+									"name": "Execute Load_Json_To_Bronze_healthcare_Notebook",
+									"type": "DatabricksNotebook",
+									"dependsOn": [
+										{
+											"activity": "Execute Ingestion PL",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"policy": {
+										"timeout": "0.12:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"notebookPath": "/Users/rahulgandhile9@gmail.com/Healthcare/1. Load_Json_To_Bronze",
+										"baseParameters": {
+											"masterPipelineRunID": {
+												"value": "@variables('masterPipelineRunID')",
+												"type": "Expression"
+											}
+										}
+									},
+									"linkedServiceName": {
+										"referenceName": "LS_load_json_to_bronze notebook",
+										"type": "LinkedServiceReference"
+									}
+								},
+								{
+									"name": "Update is_last_run_completed to 1",
+									"type": "Script",
+									"dependsOn": [
+										{
+											"activity": "Update Current Checkpoint",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"policy": {
+										"timeout": "0.12:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"linkedServiceName": {
+										"referenceName": "LS_healthcare_sqlDB_config",
+										"type": "LinkedServiceReference"
+									},
+									"typeProperties": {
+										"scripts": [
+											{
+												"type": "Query",
+												"text": {
+													"value": "UPDATE [healthcare].[pipeline_run_status] SET is_last_run_completed = 1 ,added_by = '@{variables('masterPipelineRunID')}' WHERE pipeline_name = 'API_Master_PL'",
+													"type": "Expression"
+												}
+											}
+										],
+										"scriptBlockExecutionTimeout": "02:00:00"
+									}
+								},
+								{
+									"name": "Loading Data Bronze To Silver",
+									"type": "DatabricksNotebook",
+									"dependsOn": [
+										{
+											"activity": "Execute Load_Json_To_Bronze_healthcare_Notebook",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"policy": {
+										"timeout": "0.12:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"notebookPath": "/Users/rahulgandhile9@gmail.com/Healthcare/3. Bronze_To_Silver_Healthcare",
+										"baseParameters": {
+											"masterPipelineRunID": {
+												"value": "@variables('masterPipelineRunID')",
+												"type": "Expression"
+											}
+										}
+									},
+									"linkedServiceName": {
+										"referenceName": "LS_load_json_to_bronze notebook",
+										"type": "LinkedServiceReference"
+									}
+								},
+								{
+									"name": "Landing Data Silver To Gold Table",
+									"type": "DatabricksNotebook",
+									"dependsOn": [
+										{
+											"activity": "Loading Data Bronze To Silver",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"policy": {
+										"timeout": "0.12:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"notebookPath": "/Users/rahulgandhile9@gmail.com/Healthcare/5. Silver_To_Gold_Healthcare",
+										"baseParameters": {
+											"masterPipelineRunID": {
+												"value": "@variables('masterPipelineRunID')",
+												"type": "Expression"
+											}
+										}
+									},
+									"linkedServiceName": {
+										"referenceName": "LS_load_json_to_bronze notebook",
+										"type": "LinkedServiceReference"
+									}
+								},
+								{
+									"name": "Update Current Checkpoint",
+									"type": "Script",
+									"dependsOn": [
+										{
+											"activity": "Landing Data Silver To Gold Table",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"policy": {
+										"timeout": "0.12:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"linkedServiceName": {
+										"referenceName": "LS_healthcare_sqlDB_config",
+										"type": "LinkedServiceReference"
+									},
+									"typeProperties": {
+										"scripts": [
+											{
+												"type": "Query",
+												"text": {
+													"value": "UPDATE [healthcare].[api_config_table]\r\nSET PREVIOUSCHECKPOINT = CURRENTCHECKPOINT,\r\n    CURRENTCHECKPOINT = '@{formatDateTime(pipeline().TriggerTime,'yyyy-MM-dd HH:mm:ss')}',\r\n    Added_By = '@{pipeline().RunId}'\r\n",
+													"type": "Expression"
+												}
+											}
+										],
+										"scriptBlockExecutionTimeout": "02:00:00"
+									}
+								},
+								{
+									"name": "Set Pipeline Start Time",
+									"type": "SetVariable",
+									"dependsOn": [],
+									"policy": {
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"variableName": "pipelineStartTime",
+										"value": {
+											"value": "@utcNow()",
+											"type": "Expression"
+										}
+									}
+								}
+							]
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"variables": {
+					"masterPipelineRunID": {
+						"type": "String"
+					},
+					"pipelineStartTime": {
+						"type": "String"
+					}
+				},
+				"annotations": [],
+				"lastPublishTime": "2026-02-11T19:02:02Z"
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/ds_healthcare_sql_config')]",
+				"[concat(variables('factoryId'), '/linkedServices/LS_healthcare_sqlDB_config')]",
+				"[concat(variables('factoryId'), '/pipelines/Ingestion_API_PL')]",
+				"[concat(variables('factoryId'), '/linkedServices/LS_load_json_to_bronze notebook')]"
+			]
+		}
+	]
+}

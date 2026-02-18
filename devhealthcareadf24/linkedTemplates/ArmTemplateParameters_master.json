@@ -1,0 +1,48 @@
+{
+	"$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"factoryName": {
+			"value": "devhealthcareadf24"
+		},
+		"LS_healthcare_devstorage_accountKey": {
+			"value": ""
+		},
+		"LS_healthcare_sqlDB_config_password": {
+			"value": ""
+		},
+		"LS_load_json_to_bronze notebook_accessToken": {
+			"value": ""
+		},
+		"Loading Data Silver To Gold Table_accessToken": {
+			"value": ""
+		},
+		"LS_healthcare_api_source_properties_typeProperties_url": {
+			"value": "https://r4.smarthealthit.org/"
+		},
+		"LS_healthcare_devstorage_properties_typeProperties_url": {
+			"value": "https://devhealthcarestorage24.dfs.core.windows.net/"
+		},
+		"LS_healthcare_sqlDB_config_properties_typeProperties_server": {
+			"value": "devhalthcaredb2403.database.windows.net"
+		},
+		"LS_healthcare_sqlDB_config_properties_typeProperties_database": {
+			"value": "devhealthcaredb"
+		},
+		"LS_healthcare_sqlDB_config_properties_typeProperties_userName": {
+			"value": "Avduser"
+		},
+		"LS_load_json_to_bronze notebook_properties_typeProperties_existingClusterId": {
+			"value": "0215-072529-zjj9pyio"
+		},
+		"Loading Data Silver To Gold Table_properties_typeProperties_existingClusterId": {
+			"value": "0215-072529-zjj9pyio"
+		},
+		"containerUri": {
+			"value": ""
+		},
+		"containerSasToken": {
+			"value": ""
+		}
+	}
+}
